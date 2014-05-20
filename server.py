@@ -21,19 +21,21 @@ servSock.listen(1)
 
 while True:
     clntSock, clntAddr = servSock.accept()
+    clntIP = clntSock.getpeername()[0]
     clntFile = clntSock.makefile("rw", 0)
 
     line = clntFile.readline().strip()
 
     clntFile.write('HTTP/1.0 200 OK\n\n')
-    clntFile.write('<html><head><title>Welcome %s!</title></head>' %(str(clntAddr)))
+    clntFile.write('<html><head><title>Welcome %s!</title></head>' % str(clntAddr))
     clntFile.write('<body><h1>Follow the link...</h1>')
     clntFile.write('All the server needs to do is ')
     clntFile.write('to deliver the text to the socket. ')
     clntFile.write('It delivers the HTML code for a link, ')
     clntFile.write('and the web browser converts it. <br><br><br><br>')
     clntFile.write('<font size="7"><center> <a href="http://python.about.com/index.html">Click me!</a> </center></font>')
-    clntFile.write('<br><br>The wording of your request was: "%s"' %(line))
+    clntFile.write('<br><br>The wording of your request was: "%s"' % line )
     clntFile.write('</body></html>')
 
+    print "%s: %s" % (clntIP, line)
     clntFile.close()
