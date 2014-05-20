@@ -1,8 +1,14 @@
 #!/usr/bin/python
 
-import sys
+import sys, socket, signal, os
 from sys import argv
-import socket
+
+def handler(signum, frame):
+    clntFile.close()
+    clntSock.close()
+    exit(0)
+
+signal.signal(signal.SIGINT, handler)
 
 if len(argv) != 2:
     print "Usage: ./server.py [port]"
