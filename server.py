@@ -10,12 +10,13 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGINT, handler)
 
-if len(argv) != 2:
-    print "Usage: ./server.py [port]"
+if len(argv) != 3:
+    print "Usage: ./server.py [port] [root]"
     exit(1)
 
 host = ''
 port = int(argv[1])
+root = argv[2]
 
 servSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -30,18 +31,23 @@ while True:
     clntIP = clntSock.getpeername()[0]
     clntFile = clntSock.makefile("rw", 0)
 
-    line = clntFile.readline().strip()
+    reqLine = clntFile.readline().strip()
 
-    clntFile.write('HTTP/1.0 200 OK\n\n')
-    clntFile.write('<html><head><title>Welcome %s!</title></head>' % str(clntAddr))
-    clntFile.write('<body><h1>Follow the link...</h1>')
-    clntFile.write('All the server needs to do is ')
-    clntFile.write('to deliver the text to the socket. ')
-    clntFile.write('It delivers the HTML code for a link, ')
-    clntFile.write('and the web browser converts it. <br><br><br><br>')
-    clntFile.write('<font size="7"><center> <a href="http://python.about.com/index.html">Click me!</a> </center></font>')
-    clntFile.write('<br><br>The wording of your request was: "%s"' % line )
-    clntFile.write('</body></html>')
+    method, page, protocol = reqLine.split()
 
-    print "%s: %s" % (clntIP, line)
+    filename = root + page
+    if filename[-1] == '/':
+        filename = filename + "index.html"
+    if os.path.isfile(filename):
+        readFile = open(filename)
+
+        clntFile.write("HTTP/1.0 200 OK\r\n\r\n")
+        for line in readFile:
+            clntFile.write(line)
+
+        print "%s: %s" % (clntIP, reqLine)
+        readFile.close()
+    else:
+        clntFile.write("HTTP/1.0 404 NOT FOUND\r\n\r\n<html><body><h1>404 Not Found</h1><body><html>")
+
     clntFile.close()
